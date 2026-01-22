@@ -26,17 +26,32 @@ export default function LogWine() {
     rating: "",
     tastingNote: "",
   });
+  const [isAiEnhancing, setIsAiEnhancing] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: Handle form submission with backend
     console.log("Wine logged:", formData);
+    // Show alert
+    alert("Wine Logged!");
     // Navigate back to dashboard
     router.push("/dashboard");
   };
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleEnhanceWithAI = async () => {
+    setIsAiEnhancing(true);
+    
+    // Wait 1.5 seconds
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Replace with AI-generated tasting note
+    const aiGeneratedNote = "A bold expression with notes of dark cherry, leather, and a hint of vanilla oak. The tannins are well-integrated, offering a long, velvety finish.";
+    setFormData((prev) => ({ ...prev, tastingNote: aiGeneratedNote }));
+    setIsAiEnhancing(false);
   };
 
   return (
@@ -133,7 +148,19 @@ export default function LogWine() {
 
               {/* Tasting Note */}
               <div className="space-y-2">
-                <Label htmlFor="tastingNote">Tasting Note</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="tastingNote">Tasting Note</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEnhanceWithAI}
+                    disabled={isAiEnhancing}
+                    className="text-sm"
+                  >
+                    {isAiEnhancing ? "Sommelier is thinking..." : "✨ Enhance with AI"}
+                  </Button>
+                </div>
                 <Textarea
                   id="tastingNote"
                   placeholder="Describe the aroma, taste, body, finish, and your overall impression..."
