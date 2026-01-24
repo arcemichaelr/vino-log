@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 
-export default function Login() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
@@ -174,5 +174,13 @@ export default function Login() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
