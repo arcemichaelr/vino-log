@@ -1,105 +1,134 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
 
-// Mock data for wine logs
-const mockWineLogs = [
-  {
-    id: 1,
-    name: "Domaine de la Romanée-Conti",
-    vintage: "2018",
-    type: "Pinot Noir",
-    rating: 9,
-    tastingNote: "Exquisite balance of fruit and earth. Notes of cherry, rose petals, and subtle spice. Incredible depth and complexity.",
-    date: "2024-03-15",
-  },
-  {
-    id: 2,
-    name: "Château Margaux",
-    vintage: "2015",
-    type: "Cabernet Sauvignon",
-    rating: 10,
-    tastingNote: "A perfect wine. Rich, full-bodied with dark fruit flavors. Tannins are perfectly integrated. Absolutely stunning.",
-    date: "2024-03-10",
-  },
-  {
-    id: 3,
-    name: "Cloudy Bay Sauvignon Blanc",
-    vintage: "2023",
-    type: "Sauvignon Blanc",
-    rating: 8,
-    tastingNote: "Bright and crisp with tropical fruit notes. Perfect for a summer day. Refreshing acidity.",
-    date: "2024-03-05",
-  },
-];
+interface Wine {
+  id: number;
+  producer: string;
+  vintage: number;
+  varietal: string;
+  region: string | null;
+  price: number | null;
+  location: string | null;
+  rating: number;
+  tasting_note: string | null;
+  created_at: string;
+}
+
+function ratingColor(rating: number): string {
+  if (rating >= 9) return "bg-purple-600 text-white";
+  if (rating >= 7) return "bg-purple-100 text-purple-700";
+  return "bg-neutral-100 text-neutral-600";
+}
 
 export default function Dashboard() {
+  const [wines, setWines] = useState<Wine[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchWines() {
+      try {
+        const { data, error } = await supabase
+          .from("wines")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching wines:", error);
+        } else {
+          setWines(data || []);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchWines();
+  }, []);
+
+  const ranked = [...wines].sort(
+    (a, b) => (b.rating - a.rating) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-purple-900">🍷 Vino Log</h1>
-          <Link href="/log-wine">
-            <Button className="bg-purple-600 hover:bg-purple-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Log Wine
-            </Button>
+    <div className="min-h-screen bg-white">
+      <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
+          <Link
+            href="/"
+            className="text-xl font-bold tracking-tight text-neutral-900 hover:opacity-80"
+          >
+            🍷 Vino Log
           </Link>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+      <main className="mx-auto max-w-2xl px-4 pt-6 pb-8">
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Wine Log</h2>
-          <p className="text-gray-600">Recent wine experiences</p>
+          <h1 className="text-2xl font-bold text-neutral-900">Your wines</h1>
+          <p className="mt-1 text-sm text-neutral-500">Ranked by rating</p>
         </div>
 
-        {/* Wine Logs Feed */}
-        <div className="space-y-4">
-          {mockWineLogs.map((wine) => (
-            <Card key={wine.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-xl">{wine.name}</CardTitle>
-                    <CardDescription>
-                      {wine.vintage} • {wine.type}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <span className="text-2xl font-bold text-purple-600">
-                      {wine.rating}
-                    </span>
-                    <span className="text-gray-400">/10</span>
-                  </div>
+        {isLoading && (
+          <div className="flex justify-center py-16">
+            <p className="text-sm text-neutral-500">Loading…</p>
+          </div>
+        )}
+
+        {!isLoading && ranked.length > 0 && (
+          <ul className="divide-y divide-neutral-100">
+            {ranked.map((wine, index) => (
+              <li
+                key={wine.id}
+                className="flex items-center gap-4 py-4 first:pt-0"
+              >
+                <span
+                  className="tabular-nums font-semibold text-neutral-300"
+                  style={{ fontFeatureSettings: "'tnum'" }}
+                >
+                  #{index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-neutral-900">
+                    {wine.producer}
+                  </p>
+                  <p className="truncate text-sm text-neutral-500">
+                    {wine.vintage} · {wine.varietal}
+                    {wine.region ? ` · ${wine.region}` : ""}
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 mb-4">{wine.tastingNote}</p>
-                <p className="text-sm text-gray-500">Logged on {new Date(wine.date).toLocaleDateString()}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-sm font-semibold ${ratingColor(wine.rating)}`}
+                >
+                  {wine.rating.toFixed(1)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
 
-        {/* Empty State (if no logs) */}
-        {mockWineLogs.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <div className="text-6xl mb-4">🍷</div>
-              <h3 className="text-xl font-semibold mb-2">No wine logs yet</h3>
-              <p className="text-gray-600 mb-6">Start tracking your wine experiences</p>
-              <Link href="/log-wine">
-                <Button className="bg-purple-600 hover:bg-purple-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Log Your First Wine
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+        {!isLoading && ranked.length === 0 && (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/50 py-16 text-center">
+            <span className="mb-4 text-5xl">🍷</span>
+            <h2 className="text-lg font-semibold text-neutral-900">
+              No wines yet
+            </h2>
+            <p className="mt-2 max-w-xs text-sm text-neutral-500">
+              Start tracking your wine experiences.
+            </p>
+            <Link href="/log-wine" className="mt-6">
+              <Button className="bg-neutral-900 text-white hover:bg-neutral-800">
+                <Plus className="mr-2 h-4 w-4" />
+                Log your first wine
+              </Button>
+            </Link>
+          </div>
         )}
       </main>
     </div>

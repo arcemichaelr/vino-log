@@ -16,26 +16,57 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
+import { generateWineReview } from "@/app/actions";
 
 export default function LogWine() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: "",
+    producer: "",
     vintage: "",
-    type: "",
+    varietal: "",
+    region: "",
+    price: "",
+    location: "",
     rating: "",
     tastingNote: "",
   });
   const [isAiEnhancing, setIsAiEnhancing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Handle form submission with backend
-    console.log("Wine logged:", formData);
-    // Show alert
-    alert("Wine Logged!");
-    // Navigate back to dashboard
-    router.push("/dashboard");
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase.from("wines").insert([
+        {
+          producer: formData.producer,
+          vintage: parseInt(formData.vintage),
+          varietal: formData.varietal,
+          region: formData.region || null,
+          price: formData.price ? parseFloat(formData.price) : null,
+          location: formData.location || null,
+          rating: parseInt(formData.rating),
+          tasting_note: formData.tastingNote || null,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) {
+        console.error("Error saving wine:", error);
+        alert("Error saving wine. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      alert("Wine Logged!");
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error saving wine. Please try again.");
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -44,33 +75,51 @@ export default function LogWine() {
 
   const handleEnhanceWithAI = async () => {
     setIsAiEnhancing(true);
-    
-    // Wait 1.5 seconds
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Replace with AI-generated tasting note
-    const aiGeneratedNote = "A bold expression with notes of dark cherry, leather, and a hint of vanilla oak. The tannins are well-integrated, offering a long, velvety finish.";
-    setFormData((prev) => ({ ...prev, tastingNote: aiGeneratedNote }));
-    setIsAiEnhancing(false);
+
+    try {
+      // Collect keywords from form fields
+      const keywords = [
+        formData.producer,
+        formData.vintage,
+        formData.varietal,
+        formData.region,
+        formData.tastingNote,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      if (!keywords.trim()) {
+        alert("Please fill in at least one field (Producer, Vintage, Varietal, Region, or Tasting Note) to generate an AI review.");
+        setIsAiEnhancing(false);
+        return;
+      }
+
+      // Call the server action
+      const aiGeneratedNote = await generateWineReview(keywords);
+      setFormData((prev) => ({ ...prev, tastingNote: aiGeneratedNote }));
+    } catch (error) {
+      console.error("Error generating AI review:", error);
+      alert("Failed to generate AI review. Please try again.");
+    } finally {
+      setIsAiEnhancing(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center">
+    <div className="min-h-screen bg-white">
+      <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
           <Link href="/dashboard">
-            <Button variant="ghost" size="icon" className="mr-2">
-              <ArrowLeft className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="text-neutral-600 hover:text-neutral-900">
+              <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-purple-900">Log Wine</h1>
+          <h1 className="text-xl font-bold text-neutral-900">Log Wine</h1>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
-        <Card>
+      <main className="mx-auto max-w-2xl px-4 py-6 pb-8">
+        <Card className="border-neutral-200">
           <CardHeader>
             <CardTitle>Add a New Wine</CardTitle>
             <CardDescription>
@@ -79,14 +128,14 @@ export default function LogWine() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Wine Name */}
+              {/* Producer */}
               <div className="space-y-2">
-                <Label htmlFor="name">Wine Name *</Label>
+                <Label htmlFor="producer">Producer *</Label>
                 <Input
-                  id="name"
+                  id="producer"
                   placeholder="e.g., Domaine de la Romanée-Conti"
-                  value={formData.name}
-                  onChange={(e) => handleChange("name", e.target.value)}
+                  value={formData.producer}
+                  onChange={(e) => handleChange("producer", e.target.value)}
                   required
                 />
               </div>
@@ -106,26 +155,52 @@ export default function LogWine() {
                 />
               </div>
 
-              {/* Wine Type */}
+              {/* Varietal */}
               <div className="space-y-2">
-                <Label htmlFor="type">Wine Type *</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => handleChange("type", value)}
+                <Label htmlFor="varietal">Varietal *</Label>
+                <Input
+                  id="varietal"
+                  placeholder="e.g., Pinot Noir, Chardonnay, Cabernet Sauvignon"
+                  value={formData.varietal}
+                  onChange={(e) => handleChange("varietal", e.target.value)}
                   required
-                >
-                  <SelectTrigger id="type">
-                    <SelectValue placeholder="Select wine type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Red">Red</SelectItem>
-                    <SelectItem value="White">White</SelectItem>
-                    <SelectItem value="Rosé">Rosé</SelectItem>
-                    <SelectItem value="Sparkling">Sparkling</SelectItem>
-                    <SelectItem value="Dessert">Dessert</SelectItem>
-                    <SelectItem value="Fortified">Fortified</SelectItem>
-                  </SelectContent>
-                </Select>
+                />
+              </div>
+
+              {/* Region */}
+              <div className="space-y-2">
+                <Label htmlFor="region">Region</Label>
+                <Input
+                  id="region"
+                  placeholder="e.g., Burgundy, Napa Valley, Tuscany"
+                  value={formData.region}
+                  onChange={(e) => handleChange("region", e.target.value)}
+                />
+              </div>
+
+              {/* Price */}
+              <div className="space-y-2">
+                <Label htmlFor="price">Price ($)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="e.g., 299.99"
+                  value={formData.price}
+                  onChange={(e) => handleChange("price", e.target.value)}
+                />
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  placeholder="e.g., Restaurant, Home, Winery"
+                  value={formData.location}
+                  onChange={(e) => handleChange("location", e.target.value)}
+                />
               </div>
 
               {/* Rating */}
@@ -184,8 +259,9 @@ export default function LogWine() {
                 <Button
                   type="submit"
                   className="w-full sm:flex-1 bg-purple-600 hover:bg-purple-700"
+                  disabled={isSubmitting}
                 >
-                  Log Wine
+                  {isSubmitting ? "Logging..." : "Log Wine"}
                 </Button>
               </div>
             </form>

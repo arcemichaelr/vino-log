@@ -9,7 +9,9 @@ export default function Home() {
       <div className="w-full max-w-md text-center space-y-8">
         {/* Logo/Title */}
         <div className="space-y-4">
-          <h1 className="text-5xl font-bold text-purple-900">🍷 Vino Log</h1>
+          <Link href="/" className="block">
+            <h1 className="text-5xl font-bold text-purple-900">🍷 Vino Log</h1>
+          </Link>
           <p className="text-lg text-gray-600">
             Track, share, and discover wines with fellow enthusiasts
           </p>
@@ -22,7 +24,7 @@ export default function Home() {
 
         {/* CTA Buttons */}
         <div className="space-y-4 pt-4">
-          <Link href="/dashboard" className="block">
+          <Link href="/login" className="block">
             <Button className="w-full h-14 text-lg bg-purple-600 hover:bg-purple-700 text-white">
               Get Started
             </Button>
