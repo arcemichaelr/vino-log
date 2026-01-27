@@ -39,6 +39,13 @@ export default function LogWine() {
     setIsSubmitting(true);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert("You must be logged in");
+        setIsSubmitting(false);
+        return;
+      }
+
       const insertPayload = {
         producer: formData.producer,
         vintage: parseInt(formData.vintage),
@@ -49,6 +56,7 @@ export default function LogWine() {
         rating: parseInt(formData.rating),
         tasting_note: formData.tastingNote || null,
         rank: 999999,
+        user_id: user.id,
         created_at: new Date().toISOString(),
       };
 
@@ -62,7 +70,6 @@ export default function LogWine() {
         return;
       }
 
-      alert("Wine Logged!");
       router.push("/dashboard");
     } catch (err) {
       console.error("Error saving wine:", err);
