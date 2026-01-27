@@ -39,32 +39,35 @@ export default function LogWine() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("wines").insert([
-        {
-          producer: formData.producer,
-          vintage: parseInt(formData.vintage),
-          varietal: formData.varietal,
-          region: formData.region || null,
-          price: formData.price ? parseFloat(formData.price) : null,
-          location: formData.location || null,
-          rating: parseInt(formData.rating),
-          tasting_note: formData.tastingNote || null,
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      const insertPayload = {
+        producer: formData.producer,
+        vintage: parseInt(formData.vintage),
+        varietal: formData.varietal,
+        region: formData.region || null,
+        price: formData.price ? parseFloat(formData.price) : null,
+        location: formData.location || null,
+        rating: parseInt(formData.rating),
+        tasting_note: formData.tastingNote || null,
+        rank: 999999,
+        created_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase.from("wines").insert([insertPayload]);
 
       if (error) {
-        console.error("Error saving wine:", error);
-        alert("Error saving wine. Please try again.");
+        console.error("Error saving wine (Supabase):", error);
+        const message = error.message || (error as { details?: string }).details || "Error saving wine. Please try again.";
+        alert(message);
         setIsSubmitting(false);
         return;
       }
 
       alert("Wine Logged!");
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error saving wine. Please try again.");
+    } catch (err) {
+      console.error("Error saving wine:", err);
+      const message = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as { message: unknown }).message) : "Error saving wine. Please try again.");
+      alert(message);
       setIsSubmitting(false);
     }
   };

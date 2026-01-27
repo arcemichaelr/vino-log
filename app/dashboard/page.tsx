@@ -5,25 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { supabase } from "@/libs/supabase/client";
-
-interface Wine {
-  id: number;
-  producer: string;
-  vintage: number;
-  varietal: string;
-  region: string | null;
-  price: number | null;
-  location: string | null;
-  rating: number;
-  tasting_note: string | null;
-  created_at: string;
-}
-
-function ratingColor(rating: number): string {
-  if (rating >= 9) return "bg-purple-600 text-white";
-  if (rating >= 7) return "bg-purple-100 text-purple-700";
-  return "bg-neutral-100 text-neutral-600";
-}
+import { RankedWineList, type Wine } from "@/components/RankedWineList";
 
 export default function Dashboard() {
   const [wines, setWines] = useState<Wine[]>([]);
@@ -35,12 +17,12 @@ export default function Dashboard() {
         const { data, error } = await supabase
           .from("wines")
           .select("*")
-          .order("created_at", { ascending: false });
+          .order("rank", { ascending: true });
 
         if (error) {
           console.error("Error fetching wines:", error);
         } else {
-          setWines(data || []);
+          setWines((data as Wine[]) || []);
         }
       } catch (error) {
         console.error("Error:", error);
@@ -51,10 +33,6 @@ export default function Dashboard() {
 
     fetchWines();
   }, []);
-
-  const ranked = [...wines].sort(
-    (a, b) => (b.rating - a.rating) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -72,7 +50,9 @@ export default function Dashboard() {
       <main className="mx-auto max-w-2xl px-4 pt-6 pb-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-neutral-900">Your wines</h1>
-          <p className="mt-1 text-sm text-neutral-500">Ranked by rating</p>
+          <p className="mt-1 text-sm text-neutral-500">
+            Drag to reorder your ranked list
+          </p>
         </div>
 
         {isLoading && (
@@ -81,39 +61,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        {!isLoading && ranked.length > 0 && (
-          <ul className="divide-y divide-neutral-100">
-            {ranked.map((wine, index) => (
-              <li
-                key={wine.id}
-                className="flex items-center gap-4 py-4 first:pt-0"
-              >
-                <span
-                  className="tabular-nums font-semibold text-neutral-300"
-                  style={{ fontFeatureSettings: "'tnum'" }}
-                >
-                  #{index + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-neutral-900">
-                    {wine.producer}
-                  </p>
-                  <p className="truncate text-sm text-neutral-500">
-                    {wine.vintage} · {wine.varietal}
-                    {wine.region ? ` · ${wine.region}` : ""}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-sm font-semibold ${ratingColor(wine.rating)}`}
-                >
-                  {wine.rating.toFixed(1)}
-                </span>
-              </li>
-            ))}
-          </ul>
+        {!isLoading && wines.length > 0 && (
+          <RankedWineList initialWines={wines} />
         )}
 
-        {!isLoading && ranked.length === 0 && (
+        {!isLoading && wines.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/50 py-16 text-center">
             <span className="mb-4 text-5xl">🍷</span>
             <h2 className="text-lg font-semibold text-neutral-900">

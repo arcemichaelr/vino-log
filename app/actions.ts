@@ -1,10 +1,22 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import OpenAI from "openai";
+import { createClient } from "@/libs/supabase/server";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+export async function updateWineOrder(items: { id: string; rank: number }[]): Promise<void> {
+  const supabase = await createClient();
+  await Promise.all(
+    items.map(({ id, rank }) =>
+      supabase.from("wines").update({ rank }).eq("id", parseInt(id, 10))
+    )
+  );
+  revalidatePath("/dashboard");
+}
 
 export async function generateWineReview(keywords: string): Promise<string> {
   if (!process.env.OPENAI_API_KEY) {
