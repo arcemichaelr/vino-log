@@ -63,6 +63,103 @@ vino-log/
 └── public/           # Static assets
 ```
 
+## Database
+
+### Wishlist / status column
+
+The **Want to Try** (wishlist) feature uses a `status` column on the `wines` table:
+
+- `consumed` — logged wines (dashboard, "Been" count)
+- `wishlist` — want-to-try entries (wishlist page, "Want to Try" count)
+
+If you don’t have it yet, add it:
+
+```sql
+ALTER TABLE wines ADD COLUMN IF NOT EXISTS status text;
+-- Optional: backfill existing rows as consumed
+UPDATE wines SET status = 'consumed' WHERE status IS NULL;
+```
+
+### Follows table (Search & Follow)
+
+The **Search** and **Follow** features use a `follows` table:
+
+- `follower_id` (uuid) — the user who follows
+- `following_id` (uuid) — the user being followed
+
+Create it and add RLS as needed:
+
+```sql
+CREATE TABLE IF NOT EXISTS follows (
+  follower_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  following_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  PRIMARY KEY (follower_id, following_id)
+);
+-- RLS: allow select/insert/delete for authenticated users on their own follower_id
+```
+
+### Storage bucket (image uploads)
+
+The **ImageUpload** component (Edit Profile avatar, Log Wine photo) uses Supabase Storage:
+
+- **Bucket name:** `images`
+- **Path format:** `uploads/{userId}/{timestamp}-{filename}`
+
+In the Supabase dashboard:
+
+1. Create a storage bucket named `images`.
+2. Set the bucket to **Public** (or use RLS policies) so `getPublicUrl()` works.
+3. Add a policy so authenticated users can upload under `uploads/{auth.uid()}/` and read objects as needed.
+
+### wines.image_url
+
+The **Log Wine** form saves an optional photo URL to the `wines` table:
+
+```sql
+ALTER TABLE wines ADD COLUMN IF NOT EXISTS image_url text;
+```
+
+### Feed (Following tab)
+
+The **Following** feed joins `wines` with `profiles` so each card can show who logged the wine. Ensure a foreign key exists from `wines.user_id` to `profiles.id` (or `auth.users.id`). Then `.select('*, profiles(username, avatar_url, full_name)')` will work.
+
+**Reminder — run this SQL so the Following tab can show friends’ wines:**  
+Without a policy that allows reading other users’ wines, the Following tab will be empty. In Supabase SQL Editor, add a policy that allows authenticated users to read wines (e.g. public read for the feed):
+
+```sql
+-- Allow authenticated users to read all wines (for Following feed).
+-- Adjust to your security needs (e.g. restrict to only followed users via a policy).
+CREATE POLICY "Public read wines for feed"
+ON wines FOR SELECT
+TO authenticated
+USING (true);
+```
+
+### Rank persistence (optional RPC)
+
+The dashboard saves drag-and-drop order via a debounced save. The app calls Supabase RPC `update_wine_ranks` with payload `[{ id, rank }, ...]`. If that function does not exist, the app falls back to per-row updates.
+
+To use a single RPC (e.g. for transactions), create the function in SQL:
+
+```sql
+CREATE OR REPLACE FUNCTION update_wine_ranks(updates jsonb)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  FOR i IN 0..jsonb_array_length(updates)-1 LOOP
+    UPDATE wines
+    SET rank = (updates->i->>'rank')::int
+    WHERE id = ((updates->i->>'id')::bigint)
+      AND auth.uid() = user_id;
+  END LOOP;
+END;
+$$;
+```
+
 ## Next Steps
 
 - [ ] Set up Supabase database

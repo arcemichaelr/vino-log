@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
 
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body className={`${inter.className} bg-white text-neutral-900`}>
         <div className="pb-20 min-h-screen">{children}</div>
         <BottomNav />
+        <Toaster position="bottom-center" richColors closeButton />
       </body>
     </html>
   );

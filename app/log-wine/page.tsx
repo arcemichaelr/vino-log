@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,24 +15,45 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageUpload } from "@/components/ImageUpload";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/libs/supabase/client";
 import { generateWineReview } from "@/app/actions";
 
-export default function LogWine() {
+const initialForm = {
+  imageUrl: "",
+  producer: "",
+  vintage: "",
+  varietal: "",
+  region: "",
+  price: "",
+  location: "",
+  rating: "",
+  tastingNote: "",
+};
+
+function LogWineForm() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    producer: "",
-    vintage: "",
-    varietal: "",
-    region: "",
-    price: "",
-    location: "",
-    rating: "",
-    tastingNote: "",
-  });
+  const searchParams = useSearchParams();
+  const [formData, setFormData] = useState(initialForm);
   const [isAiEnhancing, setIsAiEnhancing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const p = searchParams.get("producer") ?? "";
+    const r = searchParams.get("region") ?? "";
+    const v = searchParams.get("vintage") ?? "";
+    const vari = searchParams.get("varietal") ?? "";
+    if (p || r || v || vari) {
+      setFormData((prev) => ({
+        ...prev,
+        ...(p && { producer: p }),
+        ...(r && { region: r }),
+        ...(v && { vintage: v }),
+        ...(vari && { varietal: vari }),
+      }));
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,14 +69,16 @@ export default function LogWine() {
 
       const insertPayload = {
         producer: formData.producer,
-        vintage: parseInt(formData.vintage),
+        vintage: parseInt(formData.vintage, 10),
         varietal: formData.varietal,
         region: formData.region || null,
         price: formData.price ? parseFloat(formData.price) : null,
         location: formData.location || null,
-        rating: parseInt(formData.rating),
+        rating: parseInt(formData.rating, 10),
         tasting_note: formData.tastingNote || null,
+        image_url: formData.imageUrl?.trim() || null,
         rank: 999999,
+        status: "consumed",
         user_id: user.id,
         created_at: new Date().toISOString(),
       };
@@ -116,7 +139,7 @@ export default function LogWine() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
           <Link href="/dashboard">
@@ -138,6 +161,16 @@ export default function LogWine() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Wine photo */}
+              <div className="space-y-2">
+                <ImageUpload
+                  value={formData.imageUrl}
+                  onUploadComplete={(url) => handleChange("imageUrl", url)}
+                  label="Wine photo (optional)"
+                  shape="rect"
+                />
+              </div>
+
               {/* Producer */}
               <div className="space-y-2">
                 <Label htmlFor="producer">Producer *</Label>
@@ -278,6 +311,16 @@ export default function LogWine() {
           </CardContent>
         </Card>
       </main>
+    </>
+  );
+}
+
+export default function LogWine() {
+  return (
+    <div className="min-h-screen bg-white">
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-neutral-500">Loading…</div>}>
+        <LogWineForm />
+      </Suspense>
     </div>
   );
 }
