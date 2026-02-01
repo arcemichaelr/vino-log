@@ -52,7 +52,7 @@ export default function Dashboard() {
         .from("wines")
         .select("*")
         .eq("user_id", user.id)
-        .or("status.neq.wishlist,status.is.null")
+        .neq("status", "wishlist")
         .order("rank", { ascending: true });
 
       if (error) {
