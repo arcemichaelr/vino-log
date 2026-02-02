@@ -111,7 +111,7 @@ function LogWineForm() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleLocationSelect = (selection: LocationSelection) => {
+  const handleLocationSelect = (selection: { name: string; lat: number; lng: number }) => {
     setFormData((prev) => ({
       ...prev,
       region: selection.name,
