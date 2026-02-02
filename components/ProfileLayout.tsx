@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   CheckCircle,
@@ -105,7 +106,14 @@ export function ProfileLayout({
               >
                 Edit profile
               </Button>
-              <Button variant="outline" className="flex-1 border-neutral-300">
+              <Button
+                variant="outline"
+                className="flex-1 border-neutral-300"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.success("Profile link copied to clipboard!");
+                }}
+              >
                 Share profile
               </Button>
             </>
@@ -161,11 +169,14 @@ export function ProfileLayout({
             </>
           )}
           <div className="border-t border-neutral-100" />
-          <button className="flex w-full items-center gap-4 px-4 py-4 transition-colors hover:bg-neutral-50">
+          <Link
+            href="/guide"
+            className="flex w-full items-center gap-4 px-4 py-4 transition-colors hover:bg-neutral-50"
+          >
             <Heart className="h-5 w-5 text-neutral-600" />
-            <span className="flex-1 font-medium text-neutral-900">Recs for You</span>
+            <span className="flex-1 font-medium text-neutral-900">Wine Guide</span>
             <ChevronRight className="h-5 w-5 text-neutral-400" />
-          </button>
+          </Link>
         </div>
 
         <div className="rounded-lg border border-neutral-200 bg-white p-4">

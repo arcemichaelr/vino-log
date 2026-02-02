@@ -180,6 +180,22 @@ function LogWineForm() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Collapsible help for new users */}
+            <details className="group mb-6 rounded-lg border-2 border-purple-200 bg-purple-50/50">
+              <summary className="cursor-pointer list-none px-4 py-3 font-medium text-neutral-900 hover:text-purple-700">
+                🍷 New to wine? Read this first!
+              </summary>
+              <div className="border-t border-purple-100 px-4 py-3 text-sm text-neutral-700">
+                <p className="mb-2 font-medium">Don&apos;t stress about the details! Here&apos;s a cheat sheet:</p>
+                <ul className="space-y-1">
+                  <li><strong>Vintage:</strong> Just the year it was made. Usually on the front label.</li>
+                  <li><strong>Varietal:</strong> The type of grape (e.g., Cabernet, Pinot Noir).</li>
+                  <li><strong>Producer:</strong> The brand name (e.g., Barefoot, Josh).</li>
+                </ul>
+                <p className="mt-2 text-purple-700 font-medium">You can skip anything you don&apos;t know!</p>
+              </div>
+            </details>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Wine photo */}
               <div className="space-y-2">

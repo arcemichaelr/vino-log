@@ -134,15 +134,22 @@ function LoginForm() {
                 />
               </div>
               {message && (
-                <p
-                  className={`text-sm ${
-                    message.type === "error"
-                      ? "text-destructive"
-                      : "text-green-600"
-                  }`}
-                >
-                  {message.text}
-                </p>
+                <div className="space-y-1">
+                  <p
+                    className={`text-sm ${
+                      message.type === "error"
+                        ? "text-destructive"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {message.text}
+                  </p>
+                  {message.type === "success" && (
+                    <p className="text-sm text-neutral-500">
+                      Note: The confirmation email might go to your Spam/Junk folder. Please check there if you don&apos;t see it!
+                    </p>
+                  )}
+                </div>
               )}
               <Button
                 type="submit"
