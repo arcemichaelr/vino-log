@@ -21,8 +21,11 @@ import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/libs/supabase/client";
 import { generateWineReview } from "@/app/actions";
 
+const WINE_TYPES = ["Red", "White", "Rosé", "Sparkling", "Dessert", "Other"] as const;
+
 const initialForm = {
   imageUrl: "",
+  type: "",
   producer: "",
   vintage: "",
   varietal: "",
@@ -70,10 +73,13 @@ function LogWineForm() {
         return;
       }
 
+      const vintageParsed = formData.vintage.trim() ? parseInt(formData.vintage, 10) : null;
+      const vintage = vintageParsed != null && !Number.isNaN(vintageParsed) ? vintageParsed : null;
       const insertPayload = {
         producer: formData.producer,
-        vintage: parseInt(formData.vintage, 10),
-        varietal: formData.varietal,
+        type: formData.type.trim() || null,
+        vintage,
+        varietal: formData.varietal.trim() || null,
         region: formData.region || null,
         price: formData.price ? parseFloat(formData.price) : null,
         location: formData.location || null,
@@ -185,6 +191,26 @@ function LogWineForm() {
                 />
               </div>
 
+              {/* Type */}
+              <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select
+                  value={formData.type || undefined}
+                  onValueChange={(value) => handleChange("type", value)}
+                >
+                  <SelectTrigger id="type" className="rounded-md border border-neutral-200 bg-white">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {WINE_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Producer */}
               <div className="space-y-2">
                 <Label htmlFor="producer">Producer *</Label>
@@ -197,9 +223,9 @@ function LogWineForm() {
                 />
               </div>
 
-              {/* Vintage */}
+              {/* Year (Optional) */}
               <div className="space-y-2">
-                <Label htmlFor="vintage">Vintage *</Label>
+                <Label htmlFor="vintage">Year (Optional)</Label>
                 <Input
                   id="vintage"
                   type="number"
@@ -208,19 +234,17 @@ function LogWineForm() {
                   max={new Date().getFullYear() + 1}
                   value={formData.vintage}
                   onChange={(e) => handleChange("vintage", e.target.value)}
-                  required
                 />
               </div>
 
-              {/* Varietal */}
+              {/* Grape / Varietal (Optional) */}
               <div className="space-y-2">
-                <Label htmlFor="varietal">Varietal *</Label>
+                <Label htmlFor="varietal">Grape / Varietal (Optional)</Label>
                 <Input
                   id="varietal"
                   placeholder="e.g., Pinot Noir, Chardonnay, Cabernet Sauvignon"
                   value={formData.varietal}
                   onChange={(e) => handleChange("varietal", e.target.value)}
-                  required
                 />
               </div>
 

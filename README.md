@@ -120,6 +120,14 @@ The **Log Wine** form saves an optional photo URL to the `wines` table:
 ALTER TABLE wines ADD COLUMN IF NOT EXISTS image_url text;
 ```
 
+### wines.type
+
+The **Log Wine** form includes a Type dropdown (Red, White, Rosé, Sparkling, Dessert, Other):
+
+```sql
+ALTER TABLE wines ADD COLUMN IF NOT EXISTS type text;
+```
+
 ### wines.lat / wines.lng
 
 The **Location** autocomplete (Log Wine form) saves coordinates when a place is selected:

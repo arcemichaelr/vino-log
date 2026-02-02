@@ -7,8 +7,6 @@ import {
   CheckCircle,
   Bookmark,
   Heart,
-  Trophy,
-  AlertCircle,
   ChevronRight,
   Map,
 } from "lucide-react";
@@ -168,23 +166,6 @@ export function ProfileLayout({
             <span className="flex-1 font-medium text-neutral-900">Recs for You</span>
             <ChevronRight className="h-5 w-5 text-neutral-400" />
           </button>
-        </div>
-
-        <div className="mb-6 grid grid-cols-2 gap-3">
-          <div className="rounded-lg border border-neutral-200 bg-white p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-amber-500" />
-              <span className="text-sm font-semibold text-neutral-900">Rank on VinoLog</span>
-            </div>
-            <p className="text-lg font-bold text-neutral-900">#1</p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 bg-white p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-purple-600" />
-              <span className="text-sm font-semibold text-neutral-900">Restore your streak!</span>
-            </div>
-            <p className="text-sm font-medium text-neutral-700">Log a wine today</p>
-          </div>
         </div>
 
         <div className="rounded-lg border border-neutral-200 bg-white p-4">
