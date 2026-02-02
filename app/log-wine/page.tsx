@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageUpload } from "@/components/ImageUpload";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/libs/supabase/client";
 import { generateWineReview } from "@/app/actions";
@@ -30,6 +31,8 @@ const initialForm = {
   location: "",
   rating: "",
   tastingNote: "",
+  lat: null as number | null,
+  lng: null as number | null,
 };
 
 function LogWineForm() {
@@ -74,6 +77,8 @@ function LogWineForm() {
         region: formData.region || null,
         price: formData.price ? parseFloat(formData.price) : null,
         location: formData.location || null,
+        lat: formData.lat ?? null,
+        lng: formData.lng ?? null,
         rating: parseInt(formData.rating, 10),
         tasting_note: formData.tastingNote || null,
         image_url: formData.imageUrl?.trim() || null,
@@ -104,6 +109,15 @@ function LogWineForm() {
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleLocationSelect = (selection: LocationSelection) => {
+    setFormData((prev) => ({
+      ...prev,
+      region: selection.name,
+      lat: selection.lat,
+      lng: selection.lng,
+    }));
   };
 
   const handleEnhanceWithAI = async () => {
@@ -210,16 +224,21 @@ function LogWineForm() {
                 />
               </div>
 
-              {/* Region */}
-              <div className="space-y-2">
-                <Label htmlFor="region">Region</Label>
-                <Input
-                  id="region"
-                  placeholder="e.g., Burgundy, Napa Valley, Tuscany"
-                  value={formData.region}
-                  onChange={(e) => handleChange("region", e.target.value)}
-                />
-              </div>
+              {/* Location (Smart Search) */}
+              <LocationAutocomplete
+                label="Location"
+                id="location"
+                placeholder="Search for a specific place (e.g. The French Laundry)..."
+                value={formData.region}
+                onSelect={(place) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    region: place.name,
+                    lat: place.lat,
+                    lng: place.lng,
+                  }));
+                }}
+              />
 
               {/* Price */}
               <div className="space-y-2">
@@ -235,11 +254,11 @@ function LogWineForm() {
                 />
               </div>
 
-              {/* Location */}
+              {/* Venue (where you had it) */}
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="venue">Venue</Label>
                 <Input
-                  id="location"
+                  id="venue"
                   placeholder="e.g., Restaurant, Home, Winery"
                   value={formData.location}
                   onChange={(e) => handleChange("location", e.target.value)}

@@ -61,15 +61,15 @@ export async function generateWineReview(keywords: string): Promise<string> {
         {
           role: "system",
           content:
-            "You are a professional sommelier. Write elegant, detailed wine tasting notes in 2-3 sentences. Focus on aroma, taste, body, tannins, and finish. Use sophisticated wine terminology.",
+            "You are a modern sommelier. Write a tasting note based on these keywords.\n\nConstraint: Output must be EXACTLY ONE SENTENCE. Maximum 20 words.\n\nTone: Punchy, casual, distinct. No flowery language like \"tapestry\" or \"symphony\".",
         },
         {
           role: "user",
-          content: `Based on these keywords, write a professional sommelier-style tasting note: ${keywords}`,
+          content: `Keywords: ${keywords}`,
         },
       ],
-      max_tokens: 150,
-      temperature: 0.7,
+      max_tokens: 60,
+      temperature: 0.6,
     });
 
     const review = completion.choices[0]?.message?.content || "";

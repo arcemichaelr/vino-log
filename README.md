@@ -120,6 +120,15 @@ The **Log Wine** form saves an optional photo URL to the `wines` table:
 ALTER TABLE wines ADD COLUMN IF NOT EXISTS image_url text;
 ```
 
+### wines.lat / wines.lng
+
+The **Location** autocomplete (Log Wine form) saves coordinates when a place is selected:
+
+```sql
+ALTER TABLE wines ADD COLUMN IF NOT EXISTS lat double precision;
+ALTER TABLE wines ADD COLUMN IF NOT EXISTS lng double precision;
+```
+
 ### Feed (Following tab)
 
 The **Following** feed joins `wines` with `profiles` so each card can show who logged the wine. Ensure a foreign key exists from `wines.user_id` to `profiles.id` (or `auth.users.id`). Then `.select('*, profiles(username, avatar_url, full_name)')` will work.

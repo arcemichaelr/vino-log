@@ -26,27 +26,63 @@ interface Wine {
 export default function MapPage() {
   const [wines, setWines] = useState<Wine[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasNoWines, setHasNoWines] = useState(false);
 
   useEffect(() => {
     async function fetchWines() {
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setWines([]);
+          setHasNoWines(true);
+          setIsLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase.from("wines").select("*");
 
         if (error) {
           console.error("Error fetching wines:", error);
-        } else {
-          const winesWithCoords = (data || []).map((wine) => {
-            const coords = mapLocationToCoords(wine.location, wine.region);
-            return {
-              ...wine,
-              lat: coords?.lat,
-              lng: coords?.lng,
-            };
-          });
-          setWines(winesWithCoords);
+          setWines([]);
+          setHasNoWines(true);
+          setIsLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error("Error:", error);
+
+        const myWines = (data || []).filter((w: { user_id?: string }) => w.user_id === user.id);
+
+        const winesWithCoords = myWines.map((wine: Record<string, unknown>) => {
+          let lat: number | undefined = typeof wine.lat === "number" ? wine.lat : undefined;
+          let lng: number | undefined = typeof wine.lng === "number" ? wine.lng : undefined;
+          if (lat == null || lng == null) {
+            const coords = mapLocationToCoords(
+              wine.location as string,
+              wine.region as string
+            );
+            if (coords) {
+              lat = lat ?? coords.lat;
+              lng = lng ?? coords.lng;
+            }
+          }
+          return {
+            id: wine.id as number,
+            producer: (wine.producer as string) ?? "",
+            vintage: (wine.vintage as number) ?? 0,
+            varietal: (wine.varietal as string) ?? "",
+            region: (wine.region as string) ?? null,
+            location: (wine.location as string) ?? null,
+            rating: (wine.rating as number) ?? 0,
+            lat,
+            lng,
+          };
+        });
+
+        setWines(winesWithCoords);
+        setHasNoWines(winesWithCoords.length === 0);
+      } catch (err) {
+        console.error("Error:", err);
+        setWines([]);
+        setHasNoWines(true);
       } finally {
         setIsLoading(false);
       }
@@ -62,7 +98,7 @@ export default function MapPage() {
           <p className="text-neutral-500">Loading map...</p>
         </div>
       ) : (
-        <WineMap wines={wines} />
+        <WineMap wines={wines} hasNoWines={hasNoWines} />
       )}
       <Link
         href="/dashboard"
