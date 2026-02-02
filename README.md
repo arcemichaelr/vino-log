@@ -1,190 +1,83 @@
-# 🍷 Vino Log
+# 🍷 VinoLog
 
-A mobile-first social wine tracking app built with Next.js, TypeScript, Tailwind CSS, and Shadcn/UI.
+**A mobile-first social wine tracking application built with Next.js 14, Supabase, and AI.**
 
-## Features
+VinoLog allows users to track their wine journey, follow friends, and discover new favorites through an interactive map and intelligent tasting notes. Unlike standard trackers, it focuses on education and social connection, featuring a "Wine Guide" for beginners and sommelier-style AI generation.
 
-- **Landing Page**: Beautiful welcome screen with login and sign-up options
-- **Dashboard**: View your wine log feed with recent entries
-- **Log Wine**: Add new wine entries with details like name, vintage, type, rating, and tasting notes
+## 🚀 Key Features
 
-## Tech Stack
+* **🍷 Smart Logging:** Record wines with an intelligent form that features "Smart Location" autocomplete (OpenStreetMap) and auto-saves coordinates.
+* **🤖 AI Sommelier:** Integrated OpenAI to generate professional, punchy tasting notes and educational content based on simple user keywords.
+* **🌍 Interactive Maps:** Custom Leaflet map integration that auto-zooms to user's wine locations, converting raw addresses into precise pins.
+* **🤝 Social Network:** Full social graph implementation (Follow/Unfollow) with a real-time activity feed to see what friends are drinking.
+* **🎓 Education Hub:** Built-in "Wine Guide" teaching the "4 S's of Tasting" and wine varietals to help beginners learn as they log.
+* **📊 Personal Dashboard:** Gamified profile stats tracking "Wines Tasted" and "Want to Try" lists.
+* **📸 Media:** Secure image uploads for wine labels using Supabase Storage.
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Shadcn/UI
-- **Database**: Supabase (to be configured)
+## 🛠️ Tech Stack
 
-## Getting Started
+* **Framework:** Next.js 14 (App Router)
+* **Language:** TypeScript
+* **Styling:** Tailwind CSS & Shadcn/UI
+* **Backend:** Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+* **AI:** OpenAI API (GPT-4o mini)
+* **Maps:** Leaflet & OpenStreetMap (Nominatim API)
+* **Deployment:** Vercel
 
-### Prerequisites
+## ⚙️ Database Schema (Supabase)
 
-- Node.js 18+ and npm/yarn/pnpm
-
-### Installation
-
-1. Install dependencies:
-
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-```
-
-2. Run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Project Structure
-
-```
-vino-log/
-├── app/                # Next.js App Router pages
-│   ├── dashboard/     # Dashboard page
-│   ├── log-wine/      # Log wine form page
-│   ├── login/         # Login page
-│   ├── layout.tsx     # Root layout
-│   ├── page.tsx       # Landing page
-│   └── globals.css    # Global styles
-├── components/        # React components
-│   └── ui/           # Shadcn/UI components
-├── lib/              # Utility functions
-└── public/           # Static assets
-```
-
-## Database
-
-### Wishlist / status column
-
-The **Want to Try** (wishlist) feature uses a `status` column on the `wines` table:
-
-- `consumed` — logged wines (dashboard, "Been" count)
-- `wishlist` — want-to-try entries (wishlist page, "Want to Try" count)
-
-If you don’t have it yet, add it:
+This project uses Supabase for the backend. Below are the key table extensions required to run the app.
 
 ```sql
-ALTER TABLE wines ADD COLUMN IF NOT EXISTS status text;
--- Optional: backfill existing rows as consumed
-UPDATE wines SET status = 'consumed' WHERE status IS NULL;
-```
+-- 1. Enable geospatial coordinates
+ALTER TABLE wines ADD COLUMN lat double precision;
+ALTER TABLE wines ADD COLUMN lng double precision;
 
-### Follows table (Search & Follow)
-
-The **Search** and **Follow** features use a `follows` table:
-
-- `follower_id` (uuid) — the user who follows
-- `following_id` (uuid) — the user being followed
-
-Create it and add RLS as needed:
-
-```sql
+-- 2. Add social graph
 CREATE TABLE IF NOT EXISTS follows (
   follower_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   following_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at timestamptz DEFAULT now(),
   PRIMARY KEY (follower_id, following_id)
 );
--- RLS: allow select/insert/delete for authenticated users on their own follower_id
+
+-- 3. Add wine metadata
+ALTER TABLE wines ADD COLUMN type text; -- Red, White, etc.
+ALTER TABLE wines ADD COLUMN status text; -- 'consumed' or 'wishlist'
+ALTER TABLE wines ADD COLUMN image_url text;
 ```
 
-### Storage bucket (image uploads)
+## 🚀 Getting Started
 
-The **ImageUpload** component (Edit Profile avatar, Log Wine photo) uses Supabase Storage:
+1. **Clone the repository:**
 
-- **Bucket name:** `images`
-- **Path format:** `uploads/{userId}/{timestamp}-{filename}`
-
-In the Supabase dashboard:
-
-1. Create a storage bucket named `images`.
-2. Set the bucket to **Public** (or use RLS policies) so `getPublicUrl()` works.
-3. Add a policy so authenticated users can upload under `uploads/{auth.uid()}/` and read objects as needed.
-
-### wines.image_url
-
-The **Log Wine** form saves an optional photo URL to the `wines` table:
-
-```sql
-ALTER TABLE wines ADD COLUMN IF NOT EXISTS image_url text;
+```bash
+git clone https://github.com/arcemichaelr/vino-log.git
+cd vino-log
 ```
 
-### wines.type
+2. **Install dependencies:**
 
-The **Log Wine** form includes a Type dropdown (Red, White, Rosé, Sparkling, Dessert, Other):
-
-```sql
-ALTER TABLE wines ADD COLUMN IF NOT EXISTS type text;
+```bash
+npm install
 ```
 
-### wines.lat / wines.lng
+3. **Set up Environment Variables:** Create a `.env.local` file in the root directory:
 
-The **Location** autocomplete (Log Wine form) saves coordinates when a place is selected:
-
-```sql
-ALTER TABLE wines ADD COLUMN IF NOT EXISTS lat double precision;
-ALTER TABLE wines ADD COLUMN IF NOT EXISTS lng double precision;
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+OPENAI_API_KEY=your_openai_key
 ```
 
-### Feed (Following tab)
+4. **Run the development server:**
 
-The **Following** feed joins `wines` with `profiles` so each card can show who logged the wine. Ensure a foreign key exists from `wines.user_id` to `profiles.id` (or `auth.users.id`). Then `.select('*, profiles(username, avatar_url, full_name)')` will work.
-
-**Reminder — run this SQL so the Following tab can show friends’ wines:**  
-Without a policy that allows reading other users’ wines, the Following tab will be empty. In Supabase SQL Editor, add a policy that allows authenticated users to read wines (e.g. public read for the feed):
-
-```sql
--- Allow authenticated users to read all wines (for Following feed).
--- Adjust to your security needs (e.g. restrict to only followed users via a policy).
-CREATE POLICY "Public read wines for feed"
-ON wines FOR SELECT
-TO authenticated
-USING (true);
+```bash
+npm run dev
 ```
 
-### Rank persistence (optional RPC)
+Open http://localhost:3000 with your browser to see the result.
 
-The dashboard saves drag-and-drop order via a debounced save. The app calls Supabase RPC `update_wine_ranks` with payload `[{ id, rank }, ...]`. If that function does not exist, the app falls back to per-row updates.
+## 📄 License
 
-To use a single RPC (e.g. for transactions), create the function in SQL:
-
-```sql
-CREATE OR REPLACE FUNCTION update_wine_ranks(updates jsonb)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  FOR i IN 0..jsonb_array_length(updates)-1 LOOP
-    UPDATE wines
-    SET rank = (updates->i->>'rank')::int
-    WHERE id = ((updates->i->>'id')::bigint)
-      AND auth.uid() = user_id;
-  END LOOP;
-END;
-$$;
-```
-
-## Next Steps
-
-- [ ] Set up Supabase database
-- [ ] Implement authentication
-- [ ] Connect forms to backend
-- [ ] Add wine image uploads
-- [ ] Build social features (follow, like, comment)
-
-## License
-
-MIT
+MIT © [Michael Arce]
