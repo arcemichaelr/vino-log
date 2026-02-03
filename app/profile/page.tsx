@@ -32,6 +32,7 @@ export default function ProfilePage() {
   const [wantToTryCount, setWantToTryCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [ranking, setRanking] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
@@ -70,6 +71,13 @@ export default function ProfilePage() {
         .eq("follower_id", currentUser.id);
       setFollowersCount(followersCount ?? 0);
       setFollowingCount(followingCount ?? 0);
+
+      const { data: rankData } = await supabase
+        .from("user_ranks")
+        .select("ranking")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      setRanking(rankData?.ranking ?? null);
 
       const { data: winesData, error: winesError } = await supabase
         .from("wines")
@@ -152,6 +160,7 @@ export default function ProfilePage() {
         followingCount={followingCount}
         beenCount={beenCount}
         wantToTryCount={wantToTryCount}
+        ranking={ranking}
         wines={wines}
         isOwnProfile={true}
         onEditClick={() => setEditModalOpen(true)}

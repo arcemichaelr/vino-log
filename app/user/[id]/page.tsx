@@ -35,6 +35,7 @@ export default function UserProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [beenCount, setBeenCount] = useState(0);
   const [wantToTryCount, setWantToTryCount] = useState(0);
+  const [ranking, setRanking] = useState<number | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,6 +62,7 @@ export default function UserProfilePage() {
         setFollowingCount(0);
         setBeenCount(0);
         setWantToTryCount(0);
+        setRanking(null);
         setIsLoading(false);
         return;
       }
@@ -100,6 +102,13 @@ export default function UserProfilePage() {
         .eq("follower_id", id);
       setFollowersCount(followers ?? 0);
       setFollowingCount(following ?? 0);
+
+      const { data: rankData } = await supabase
+        .from("user_ranks")
+        .select("ranking")
+        .eq("user_id", id)
+        .maybeSingle();
+      setRanking(rankData?.ranking ?? null);
 
       if (me) {
         const { data: followRow } = await supabase
@@ -180,6 +189,7 @@ export default function UserProfilePage() {
       followingCount={followingCount}
       beenCount={beenCount}
       wantToTryCount={wantToTryCount}
+      ranking={ranking}
       wines={wines}
       isOwnProfile={false}
       isFollowing={isFollowing}

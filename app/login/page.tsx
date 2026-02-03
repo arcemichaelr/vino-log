@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,10 +37,9 @@ function LoginForm() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage({
-          type: "success",
-          text: "Check your email to confirm your account, then sign in.",
-        });
+        setIsSignUp(false);
+        setMessage(null);
+        toast.success("Account created! Please log in.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -134,22 +134,15 @@ function LoginForm() {
                 />
               </div>
               {message && (
-                <div className="space-y-1">
-                  <p
-                    className={`text-sm ${
-                      message.type === "error"
-                        ? "text-destructive"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {message.text}
-                  </p>
-                  {message.type === "success" && (
-                    <p className="text-sm text-neutral-500">
-                      Note: The confirmation email might go to your Spam/Junk folder. Please check there if you don&apos;t see it!
-                    </p>
-                  )}
-                </div>
+                <p
+                  className={`text-sm ${
+                    message.type === "error"
+                      ? "text-destructive"
+                      : "text-green-600"
+                  }`}
+                >
+                  {message.text}
+                </p>
               )}
               <Button
                 type="submit"

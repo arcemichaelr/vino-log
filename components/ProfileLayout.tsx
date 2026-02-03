@@ -34,6 +34,7 @@ export interface ProfileLayoutProps {
   followingCount: number;
   beenCount: number;
   wantToTryCount: number;
+  ranking?: number | null;
   wines: WineWithCoords[];
   isOwnProfile: boolean;
   isFollowing?: boolean;
@@ -52,6 +53,7 @@ export function ProfileLayout({
   followingCount,
   beenCount,
   wantToTryCount,
+  ranking = null,
   wines,
   isOwnProfile,
   isFollowing = false,
@@ -91,7 +93,9 @@ export function ProfileLayout({
             <p className="text-sm text-neutral-500">Following</p>
           </div>
           <div className="text-center">
-            <p className="text-xl font-bold text-neutral-900">#1</p>
+            <p className="text-xl font-bold text-neutral-900">
+              {ranking != null ? `#${ranking}` : "-"}
+            </p>
             <p className="text-sm text-neutral-500">Rank</p>
           </div>
         </div>
