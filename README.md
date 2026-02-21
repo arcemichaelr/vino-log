@@ -70,5 +70,5 @@ OPENAI_API_KEY=your_openai_key
 
 **Michael Arce**
 
-* [LinkedIn](www.linkedin.com/in/michael-arce-9a4825231)
+* [LinkedIn](https://www.linkedin.com/in/michael-arce-9a4825231/)
 * [GitHub](https://github.com/arcemichaelr)
