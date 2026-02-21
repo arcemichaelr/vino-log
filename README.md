@@ -6,7 +6,7 @@ VinoLog allows users to track their wine journey, follow friends, and discover n
 
 **Live Demo:** [https://vino-log.vercel.app](https://vino-log.vercel.app)
 
-*(📸 Note to Mikey: Drag and drop a screenshot of your app's home screen right here before you commit!)*
+<img width="2303" height="1371" alt="image" src="https://github.com/user-attachments/assets/293d521e-c7b8-4e85-95e0-1e69f23fe782" />
 
 ## ✨ Key Features
 * **Smart Logging:** Record wines with an intelligent form that features "Smart Location" autocomplete (OpenStreetMap) and auto-saves coordinates.
