@@ -154,8 +154,37 @@ export default function UserProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-neutral-500">Loading...</p>
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-2xl px-4 py-6 pb-24">
+          <div className="animate-pulse">
+            <div className="mb-6 flex flex-col items-center">
+              <div className="mb-4 h-24 w-24 rounded-full bg-neutral-200 dark:bg-zinc-700" />
+              <div className="mb-2 h-6 w-36 rounded bg-neutral-200 dark:bg-zinc-700" />
+              <div className="mb-2 h-4 w-24 rounded bg-neutral-200 dark:bg-zinc-700" />
+              <div className="h-3 w-28 rounded bg-neutral-200 dark:bg-zinc-700" />
+            </div>
+            <div className="mb-6 flex justify-around border-b border-neutral-200 pb-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <div className="h-6 w-10 rounded bg-neutral-200 dark:bg-zinc-700" />
+                  <div className="h-3 w-14 rounded bg-neutral-200 dark:bg-zinc-700" />
+                </div>
+              ))}
+            </div>
+            <div className="mb-6">
+              <div className="h-10 w-full rounded-full bg-neutral-200 dark:bg-zinc-700" />
+            </div>
+            <div className="space-y-3 rounded-lg border border-neutral-200 p-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="h-5 w-5 rounded bg-neutral-200 dark:bg-zinc-700" />
+                  <div className="h-4 flex-1 rounded bg-neutral-200 dark:bg-zinc-700" />
+                  <div className="h-4 w-8 rounded bg-neutral-200 dark:bg-zinc-700" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

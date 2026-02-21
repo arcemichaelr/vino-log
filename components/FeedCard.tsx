@@ -71,7 +71,7 @@ export function FeedCard({ wine }: FeedCardProps) {
     : note;
 
   return (
-    <article className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <article className="overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       {/* Header */}
       <header className="flex items-center gap-3 px-4 py-3">
         <Link href={`/user/${wine.user_id}`} className="flex shrink-0 items-center gap-3">
@@ -96,13 +96,14 @@ export function FeedCard({ wine }: FeedCardProps) {
 
       {/* Image */}
       {wine.image_url && (
-        <div className="w-full border-t border-neutral-100">
-          <img
-            src={wine.image_url}
-            alt=""
-            className="w-full rounded-b-xl object-cover"
-            style={{ maxHeight: 320 }}
-          />
+        <div className="w-full border-t border-neutral-100 overflow-hidden">
+          <div className="aspect-[4/3] w-full overflow-hidden">
+            <img
+              src={wine.image_url}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       )}
 

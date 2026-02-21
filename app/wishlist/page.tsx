@@ -96,8 +96,19 @@ export default function WishlistPage() {
         </div>
 
         {isLoading && (
-          <div className="flex justify-center py-16">
-            <p className="text-sm text-neutral-500">Loading…</p>
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse rounded-xl border border-neutral-100 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center gap-4">
+                  <div className="h-5 w-5 rounded bg-neutral-200 dark:bg-zinc-700" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-3/4 rounded bg-neutral-200 dark:bg-zinc-700" />
+                    <div className="h-3 w-1/2 rounded bg-neutral-200 dark:bg-zinc-700" />
+                  </div>
+                  <div className="h-8 w-8 rounded-full bg-neutral-200 dark:bg-zinc-700" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

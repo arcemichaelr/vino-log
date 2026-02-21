@@ -170,8 +170,23 @@ export default function Dashboard() {
         )}
 
         {loading && (
-          <div className="flex justify-center py-16">
-            <p className="text-sm text-neutral-500">Loading…</p>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse rounded-xl border border-neutral-100 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-full bg-neutral-200 dark:bg-zinc-700" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-28 rounded bg-neutral-200 dark:bg-zinc-700" />
+                    <div className="h-3 w-20 rounded bg-neutral-200 dark:bg-zinc-700" />
+                  </div>
+                </div>
+                <div className="aspect-[4/3] w-full rounded-md bg-neutral-200 dark:bg-zinc-700" />
+                <div className="mt-4 space-y-2">
+                  <div className="h-4 w-3/4 rounded bg-neutral-200 dark:bg-zinc-700" />
+                  <div className="h-3 w-1/2 rounded bg-neutral-200 dark:bg-zinc-700" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
